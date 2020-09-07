@@ -2,6 +2,10 @@ package org.openpaas.paasta.portal.api.service;
 
 
 import org.cloudfoundry.client.lib.CloudFoundryException;
+import org.cloudfoundry.client.v2.organizations.*;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceAuditorByUsernameRequest;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceManagerByUsernameRequest;
 import org.cloudfoundry.client.v2.users.GetUserRequest;
 import org.cloudfoundry.client.v2.users.GetUserResponse;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
@@ -9,6 +13,9 @@ import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.tokens.GetTokenByClientCredentialsRequest;
 import org.cloudfoundry.uaa.tokens.GetTokenByClientCredentialsResponse;
 import org.cloudfoundry.uaa.users.*;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.openpaas.paasta.portal.api.model.UserDetail;
 import org.slf4j.Logger;
@@ -262,6 +269,54 @@ public class UserServiceV2 extends Common {
 
     }
 
+    /**
+     * 사용자이름으로 조직과공간을 지정하고 role을 부여한다.
+     *
+     * @param guid
+     * @param username
+     * @return
+     */
+    public Map associateUserOrg(String guid, String username){
+        Map result = new HashMap();
+        try {
+            JSONObject obj = new JSONObject(username);
+            String name= obj.getString("username");
+            String spaceguid= obj.getString("spaceguid");
+            JSONArray roles = obj.getJSONArray("role");
+
+            ReactorCloudFoundryClient reactorCloudFoundryClient = cloudFoundryClient();
+            org.cloudfoundry.client.v2.users.ListUsersResponse response = reactorCloudFoundryClient.users().list(org.cloudfoundry.client.v2.users.ListUsersRequest.builder().build()).block();
+            reactorCloudFoundryClient.organizations().associateUserByUsername(AssociateOrganizationUserByUsernameRequest.builder().organizationId(guid).username(name).build()).block();
+            reactorCloudFoundryClient.spaces().associateAuditorByUsername(AssociateSpaceAuditorByUsernameRequest.builder().spaceId(spaceguid).username(name).build()).block();
+
+            if(roles.length() > 0){
+                for(int i=0; i<roles.length();i++){
+                    switch (roles.get(i).toString()){
+                        case "OrgManager" : { reactorCloudFoundryClient.organizations()
+                                .associateManagerByUsername(AssociateOrganizationManagerByUsernameRequest.builder().username(name).organizationId(guid).build()).block(); break;}
+                        case "BillingManager" : {  reactorCloudFoundryClient.organizations()
+                                .associateBillingManagerByUsername(AssociateOrganizationBillingManagerByUsernameRequest.builder().username(name).organizationId(guid).build()).block(); break;}
+                        case "OrgAuditor" : { reactorCloudFoundryClient.organizations()
+                                .associateAuditorByUsername(AssociateOrganizationAuditorByUsernameRequest.builder().username(name).organizationId(guid).build()).block(); break;}
+                        case "SpaceManager" : { reactorCloudFoundryClient.spaces()
+                                .associateManagerByUsername(AssociateSpaceManagerByUsernameRequest.builder().username(name).spaceId(spaceguid).build()).block(); break;}
+                        case "SpaceDeveloper" : {  reactorCloudFoundryClient.spaces()
+                                .associateDeveloperByUsername(AssociateSpaceDeveloperByUsernameRequest.builder().username(name).spaceId(spaceguid).build()).block(); break;}
+                        case "SpaceAuditor" : { reactorCloudFoundryClient.spaces()
+                                .associateAuditorByUsername(AssociateSpaceAuditorByUsernameRequest.builder().username(name).spaceId(spaceguid).build()).block(); break;}
+                    }
+                }
+            }
+
+            result.put("result", true);
+            result.put("msg", "You have successfully completed the task.");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            result.put("result", false);
+            result.put("msg", e.getMessage());
+        }
+        return result;
+    }
 
     /**
      * 메일인증된 CloundFoundry 회원을 생성한다.

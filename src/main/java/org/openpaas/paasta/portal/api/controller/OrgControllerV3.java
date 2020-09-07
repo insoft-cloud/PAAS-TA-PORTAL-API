@@ -1,5 +1,6 @@
 package org.openpaas.paasta.portal.api.controller;
 
+import org.apache.wink.common.model.wadl.Param;
 import org.cloudfoundry.client.lib.CloudFoundryException;
 import org.cloudfoundry.client.v2.organizationquotadefinitions.GetOrganizationQuotaDefinitionResponse;
 import org.cloudfoundry.client.v2.organizations.AbstractOrganizationResource;
@@ -205,6 +206,18 @@ public class OrgControllerV3 extends Common {
     }
 
     /**
+     *
+     * 운영자 포털에서 조직을생성한다.
+     *
+     * @param param
+     * @return
+     */
+    @PostMapping(Constants.V3_URL+"/organizations")
+    public Map createOrgForAdmin(@RequestBody Map param){
+        return orgServiceV3.createOrgForAdmin(param);
+    }
+
+    /**
      * 사용자의 조직의 이름을 변경한다.
      *
      * @param org
@@ -216,6 +229,21 @@ public class OrgControllerV3 extends Common {
     public Map renameOrg(@RequestBody Org org, @RequestHeader(AUTHORIZATION_HEADER_KEY) String token) {
         LOGGER.info("renameOrg Start ");
         Map resultMap = orgServiceV3.renameOrg(org, token);
+
+        LOGGER.info("renameOrg End ");
+        return resultMap;
+    }
+
+    /**
+     * 운영자포탈에서 조직의 이름을 변경한다.
+     *
+     * @param org
+     * @return Map
+     */
+    @PutMapping(Constants.V3_URL + "/organization-admin")
+    public Map renameOrgForAdmin(@RequestBody Org org) {
+        LOGGER.info("renameOrg Start ");
+        Map resultMap = orgServiceV3.renameOrgForAdmin(org);
 
         LOGGER.info("renameOrg End ");
         return resultMap;
@@ -236,6 +264,17 @@ public class OrgControllerV3 extends Common {
         Map resultMap = orgServiceV3.deleteOrg(guid, recursive, token);
 
         LOGGER.info("deleteOrg End ");
+        return resultMap;
+    }
+
+    /**
+     * 운영자 포털에서 조직을 삭제한다. (Org Delete)
+     *
+     * @param guid      the organization id (guid)
+     */
+    @DeleteMapping(Constants.V3_URL + "/organizations-admin/{guid}")
+    public Map deleteOrgForAdmin(@PathVariable String guid) throws Exception {
+        Map resultMap = orgServiceV3.deleteOrgForAdmin(guid);
         return resultMap;
     }
 

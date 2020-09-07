@@ -216,6 +216,29 @@ public class SpaceServiceV3 extends Common {
     }
 
     /**
+     *
+     * 운영자 포털에서 공간명명을 변경한다. (Space : Update)
+     *
+     * @param space
+     * @return
+     */
+    public Map renameSpaceForAdmin(Space space) {
+        Map resultMap = new HashMap();
+
+        try {
+            cloudFoundryClient().spaces().update(UpdateSpaceRequest.builder().spaceId(space.getGuid().toString()).name(space.getNewSpaceName()).build()).block();
+            resultMap.put("msg", "You have successfully completed the task.");
+            resultMap.put("result", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultMap.put("result", false);
+            resultMap.put("msg", e);
+        }
+
+        return resultMap;
+    }
+
+    /**
      * 공간을 삭제한다. (Space : Delete)
      *
      * @param guid  the space
@@ -350,6 +373,15 @@ public class SpaceServiceV3 extends Common {
         ListSpaceServicesResponse respSpaceServices = cloudFoundryClient.spaces().listServices(ListSpaceServicesRequest.builder().spaceId(spaceId).build()).block();
 
         return respSpaceServices;
+    }
+
+    /**
+     * 운영자포탈에서 스페이스 목록전체를 가져온다
+     *
+     * @return
+     */
+    public ListSpacesResponse getSpacesForAdmin() {
+        return cloudFoundryClient().spaces().list(ListSpacesRequest.builder().build()).block();
     }
 
     // TODO spaces role

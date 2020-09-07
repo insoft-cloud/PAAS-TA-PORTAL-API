@@ -196,4 +196,16 @@ public class UserControllerV2 extends Common {
     public UpdateUserResponse UpdateUserActive(@PathVariable String userid) throws Exception {
         return userServiceV2.UpdateUserActive(userid);
     }
+
+    /**
+     * 사용자이름으로 조직과공간을 지정하고 role을 부여한다.
+     *
+     * @param guid
+     * @param users
+     * @return
+     */
+    @PutMapping(Constants.V2_URL + "/organizations/{guid}/users")
+    public Map associateUserOrg(@PathVariable String guid, @RequestBody String users){
+        return userServiceV2.associateUserOrg(guid,users);
+    }
 }

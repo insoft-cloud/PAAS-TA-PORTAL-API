@@ -20,6 +20,7 @@ import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.uaa.users.User;
 import org.joda.time.DateTime;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -89,6 +90,44 @@ public class OrgServiceV3 extends Common {
                 put("MSG", e.getMessage());
             }};
         }
+    }
+
+    /**
+     *
+     * 운영자포털에서 조직을 생성한다.
+     *
+     * @return
+     */
+    public Map createOrgForAdmin(Map param){
+        Map result = new HashMap();
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(param);
+            String orgName= obj.getString("orgName");
+            String spaceName= obj.getString("spaceName");
+            String orgQuotaGuid= obj.getString("orgQuotaGuid");
+            String spaceQuotaGuid= obj.getString("spaceQuotaGuid");
+            if(orgQuotaGuid.equals("N")){
+                CreateOrganizationResponse response = cloudFoundryClient().organizations().create(CreateOrganizationRequest.builder().name(orgName).build()).block();
+            }else {
+                CreateOrganizationResponse response = cloudFoundryClient().organizations().create(CreateOrganizationRequest.builder().name(orgName).quotaDefinitionId(orgQuotaGuid).build()).block();
+            }
+
+            OrganizationDetail organizationDetail= getOrgUsingName(orgName);
+
+            if(spaceQuotaGuid.equals("N")){
+                CreateSpaceResponse response = cloudFoundryClient().spaces().create(CreateSpaceRequest.builder().name(spaceName).organizationId(organizationDetail.getId()).build()).block();
+            }else{
+                CreateSpaceResponse response = cloudFoundryClient().spaces().create(CreateSpaceRequest.builder().name(spaceName).organizationId(organizationDetail.getId()).spaceQuotaDefinitionId(spaceQuotaGuid).build()).block();
+            }
+
+            result.put("result", true);
+            result.put("msg", "You have successfully completed the task.");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            result.put("result", false);
+            result.put("msg", e.getMessage());
+        }
+        return result;
     }
 
     public boolean isExistOrgName(String orgName) {
@@ -297,6 +336,28 @@ public class OrgServiceV3 extends Common {
     }
 
     /**
+     * 운영자 포털에서 조직의 이름을 수정한다. (Org Update : name)
+     *
+     * @param org
+     * @return UpdateOrganizationResponse
+     */
+    public Map renameOrgForAdmin(Org org) {
+        Map resultMap = new HashMap();
+
+        try {
+            cloudFoundryClient().organizations().update(UpdateOrganizationRequest.builder().organizationId(org.getGuid().toString()).name(org.getNewOrgName()).build()).block();
+            resultMap.put("msg", "You have successfully completed the task.");
+            resultMap.put("result", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultMap.put("result", false);
+            resultMap.put("msg", e);
+        }
+
+        return resultMap;
+    }
+
+    /**
      * 사용자 포털에서 조직을 삭제한다. (Org Delete)<br>
      * 만약 false가 넘어올 경우, 권한이 없거나 혹은
      *
@@ -359,6 +420,7 @@ public class OrgServiceV3 extends Common {
 
                 resultMap.put("result", false);
                 return resultMap;
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -369,6 +431,26 @@ public class OrgServiceV3 extends Common {
         return resultMap;
     }
 
+    /**
+     * 운영자 포털에서 조직을 삭제한다. (Org Delete)
+     *
+     */
+    public Map deleteOrgForAdmin(String guid) throws Exception {
+        Map map = new HashMap();
+        try {
+            DeleteOrganizationResponse eleteOrganizationResponse = cloudFoundryClient().organizations().delete(DeleteOrganizationRequest.builder().organizationId(guid).recursive(true).async(false).build()).block();
+
+            map.put("msg", "You have successfully completed the task.");
+            map.put("result", true);
+
+            return map;
+        } catch (Exception e) {
+            map.put("result", false);
+            map.put("msg", e);
+        }
+
+        return map;
+    }
 
     /**
      * 운영자/사용자 포털에서 스페이스 목록을 요청했을때, 해당 조직의 모든 스페이스 목록을 응답한다.
