@@ -233,19 +233,15 @@ public class SpaceControllerV3 extends Common {
     }
 
     /**
-     * Space 을 생성한다.
+     * 운영자 포털에서 Space를 생성한다.
      *
-     * @param  space    the space
-     * @param token    user token
      * @return CreateOrganizationResponse
      * 권한 : 사용자권한
      * @throws Exception the exception
      */
     @PostMapping(Constants.V3_URL+"/spaces")
-    public Map<?,?> createSpace(@RequestBody Space space, @RequestHeader(AUTHORIZATION_HEADER_KEY) String token){
-        final Map<String, Object> result = new HashMap<>();
-        result.put("result", spaceServiceV3.createSpace(space.getSpaceName(), space.getOrgGuid(), space.getUserId(), token));
-        return result;
+    public Map<?,?> createSpace(@RequestBody Map space){
+        return spaceServiceV3.createSpace(space);
     }
 
     /**

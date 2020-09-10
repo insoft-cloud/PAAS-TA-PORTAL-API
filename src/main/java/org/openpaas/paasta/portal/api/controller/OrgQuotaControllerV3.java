@@ -1,6 +1,7 @@
 package org.openpaas.paasta.portal.api.controller;
 
 import org.cloudfoundry.client.v2.organizationquotadefinitions.*;
+import org.cloudfoundry.client.v2.organizations.ListOrganizationSpaceQuotaDefinitionsResponse;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.openpaas.paasta.portal.api.common.Constants;
 import org.openpaas.paasta.portal.api.model.Quota;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.GET;
 import java.util.UUID;
 
 
@@ -106,5 +108,17 @@ public class OrgQuotaControllerV3 extends Common {
         LOGGER.info("setOrgQuotaDefinitions Start : ");
         orgQuotaServiceV3.setOrgQuotaDefinitions(quota);
         return true;
+    }
+
+    /**
+     *
+     * 특정 조직 에 대한 모든 공간할당량 조회
+     *
+     * @param guid
+     * @return
+     */
+    @GetMapping(Constants.V3_URL + "/organizations/{guid}/space_quota_definitions")
+    public ListOrganizationSpaceQuotaDefinitionsResponse getOrgSpaceQuotaDefinitionsList(@PathVariable String guid){
+        return orgQuotaServiceV3.getOrgSpaceQuotaDefinitionsList(guid);
     }
 }

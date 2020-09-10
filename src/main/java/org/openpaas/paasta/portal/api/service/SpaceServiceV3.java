@@ -9,6 +9,7 @@ import org.cloudfoundry.client.v3.ToOneRelationship;
 import org.cloudfoundry.client.v3.spaces.AssignSpaceIsolationSegmentRequest;
 import org.cloudfoundry.client.v3.spaces.AssignSpaceIsolationSegmentResponse;
 import org.cloudfoundry.client.v3.spaces.SpaceRelationships;
+import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.mariadb.jdbc.internal.logging.Logger;
@@ -102,7 +103,7 @@ public class SpaceServiceV3 extends Common {
      * @version 2.0
      * @since 2018.5.3
      */
-    public Map createSpace(Space space, String token) {
+    /*public Map createSpace(Space space, String token) {
         Map resultMap = new HashMap();
 
         try {
@@ -127,7 +128,40 @@ public class SpaceServiceV3 extends Common {
         }
 
         return resultMap;
+    }*/
+
+    /**
+     *
+     * 운영자 포털에서 공간을 생성한다. (Space : Create)
+     *
+     * @return
+     */
+    public Map createSpace(Map space) {
+        Map resultMap = new HashMap();
+        try {
+
+            org.json.JSONObject obj = new org.json.JSONObject(space);
+            String orgGuid= obj.getString("orgGuid");
+            String spaceName= obj.getString("spaceName");
+            String spaceQuotaGuid= obj.getString("spaceQuotaGuid");
+
+            if(spaceQuotaGuid.equals("N")){
+                CreateSpaceResponse response = cloudFoundryClient().spaces().create(CreateSpaceRequest.builder().name(spaceName).organizationId(orgGuid).build()).block();
+            }else{
+                CreateSpaceResponse response = cloudFoundryClient().spaces().create(CreateSpaceRequest.builder().name(spaceName).organizationId(orgGuid).spaceQuotaDefinitionId(spaceQuotaGuid).build()).block();
+            }
+
+            resultMap.put("result", true);
+            resultMap.put("msg", "You have successfully completed the task.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultMap.put("result", false);
+            resultMap.put("msg", e);
+        }
+
+        return resultMap;
     }
+
 
     /**
      * 공간의 정보를 가져온다. (Space : Read)
@@ -170,7 +204,6 @@ public class SpaceServiceV3 extends Common {
 
         return spaces.get(0);
     }
-
 
     public boolean isExistSpace(final String spaceId) {
         try {
@@ -217,7 +250,7 @@ public class SpaceServiceV3 extends Common {
 
     /**
      *
-     * 운영자 포털에서 공간명명을 변경한다. (Space : Update)
+     * 운영자 포털에서 공간명을 변경한다. (Space : Update)
      *
      * @param space
      * @return
@@ -227,6 +260,7 @@ public class SpaceServiceV3 extends Common {
 
         try {
             cloudFoundryClient().spaces().update(UpdateSpaceRequest.builder().spaceId(space.getGuid().toString()).name(space.getNewSpaceName()).build()).block();
+
             resultMap.put("msg", "You have successfully completed the task.");
             resultMap.put("result", true);
         } catch (Exception e) {

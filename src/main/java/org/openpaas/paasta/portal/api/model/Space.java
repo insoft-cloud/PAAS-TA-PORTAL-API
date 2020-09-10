@@ -41,6 +41,7 @@ public class Space {
     private int spaceId;
     private int orgId;
     private String spaceGuid;
+    private String spaceQuotaGuid;
     private String orgGuid;
     private Date created;
     private Date lastModified;
@@ -98,6 +99,13 @@ public class Space {
         if (this.spaceGuid == null || "".equals(this.spaceGuid)) {
             this.setSpaceGuid(guid.toString());
         }
+    }
+    public String getSpaceQuotaGuid() {
+        return spaceQuotaGuid;
+    }
+
+    public void setSpaceQuotaGuid(String spaceQuotaGuid) {
+        this.spaceQuotaGuid = spaceQuotaGuid;
     }
 
     public String getName() {

@@ -235,7 +235,7 @@ public class OrgControllerV3 extends Common {
     }
 
     /**
-     * 운영자포탈에서 조직의 이름을 변경한다.
+     * 운영자 포털에서 조직이름과 할당량을 변경한다.
      *
      * @param org
      * @return Map

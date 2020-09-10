@@ -26,6 +26,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.openpaas.paasta.portal.api.model.Org;
+import org.openpaas.paasta.portal.api.model.Quota;
 import org.openpaas.paasta.portal.api.model.UserRole;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,22 +104,8 @@ public class OrgServiceV3 extends Common {
         try {
             org.json.JSONObject obj = new org.json.JSONObject(param);
             String orgName= obj.getString("orgName");
-            String spaceName= obj.getString("spaceName");
             String orgQuotaGuid= obj.getString("orgQuotaGuid");
-            String spaceQuotaGuid= obj.getString("spaceQuotaGuid");
-            if(orgQuotaGuid.equals("N")){
-                CreateOrganizationResponse response = cloudFoundryClient().organizations().create(CreateOrganizationRequest.builder().name(orgName).build()).block();
-            }else {
-                CreateOrganizationResponse response = cloudFoundryClient().organizations().create(CreateOrganizationRequest.builder().name(orgName).quotaDefinitionId(orgQuotaGuid).build()).block();
-            }
-
-            OrganizationDetail organizationDetail= getOrgUsingName(orgName);
-
-            if(spaceQuotaGuid.equals("N")){
-                CreateSpaceResponse response = cloudFoundryClient().spaces().create(CreateSpaceRequest.builder().name(spaceName).organizationId(organizationDetail.getId()).build()).block();
-            }else{
-                CreateSpaceResponse response = cloudFoundryClient().spaces().create(CreateSpaceRequest.builder().name(spaceName).organizationId(organizationDetail.getId()).spaceQuotaDefinitionId(spaceQuotaGuid).build()).block();
-            }
+            CreateOrganizationResponse response = cloudFoundryClient().organizations().create(CreateOrganizationRequest.builder().name(orgName).quotaDefinitionId(orgQuotaGuid).build()).block();
 
             result.put("result", true);
             result.put("msg", "You have successfully completed the task.");
@@ -336,7 +323,7 @@ public class OrgServiceV3 extends Common {
     }
 
     /**
-     * 운영자 포털에서 조직의 이름을 수정한다. (Org Update : name)
+     * 운영자 포털에서 조직이름과 할당량을 변경한다.
      *
      * @param org
      * @return UpdateOrganizationResponse
@@ -346,6 +333,8 @@ public class OrgServiceV3 extends Common {
 
         try {
             cloudFoundryClient().organizations().update(UpdateOrganizationRequest.builder().organizationId(org.getGuid().toString()).name(org.getNewOrgName()).build()).block();
+            Quota quota = org.getQuota();
+
             resultMap.put("msg", "You have successfully completed the task.");
             resultMap.put("result", true);
         } catch (Exception e) {

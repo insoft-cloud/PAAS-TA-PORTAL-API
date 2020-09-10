@@ -2,6 +2,8 @@ package org.openpaas.paasta.portal.api.service;
 
 
 import org.cloudfoundry.client.v2.organizationquotadefinitions.*;
+import org.cloudfoundry.client.v2.organizations.ListOrganizationSpaceQuotaDefinitionsRequest;
+import org.cloudfoundry.client.v2.organizations.ListOrganizationSpaceQuotaDefinitionsResponse;
 import org.cloudfoundry.operations.organizationadmin.SetQuotaRequest;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.openpaas.paasta.portal.api.model.Quota;
@@ -107,5 +109,17 @@ public class OrgQuotaServiceV3 extends Common {
 
         return true;
     }
+
+    /**
+     *
+     * 특정 조직 에 대한 모든 공간할당량 조회
+     *
+     * @param guid
+     * @return
+     */
+    public ListOrganizationSpaceQuotaDefinitionsResponse getOrgSpaceQuotaDefinitionsList(String guid){
+        return cloudFoundryClient().organizations().listSpaceQuotaDefinitions(ListOrganizationSpaceQuotaDefinitionsRequest.builder().organizationId(guid).build()).block();
+    }
+
 
 }
