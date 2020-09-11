@@ -280,15 +280,40 @@ public class SpaceControllerV3 extends Common {
     }
 
     /**
-     * 운영자 포털에서 공간명을 변경한다. (Space : Update)
+     * 운영자 포털에서 공간명과 할당량을 변경한다. (Space : Update)
      *
      * @param space
      * @return Map
      */
     @PutMapping(Constants.V3_URL + "/space-admin")
-    public Map renameOrgForAdmin(@RequestBody Space space) {
-        Map resultMap = spaceServiceV3.renameSpaceForAdmin(space);
+    public Map renameSpaceQuotaForAdmin(@RequestBody Space space) {
+        Map resultMap = spaceServiceV3.renameSpaceQuotaForAdmin(space);
 
+        return resultMap;
+    }
+
+    /**
+     * 운영자 포털에서 할당량을 변경한다. (Space : Update)
+     *
+     * @param space
+     * @return Map
+     */
+    @PutMapping(Constants.V3_URL + "/space-quota-admin")
+    public Map qutaoSpaceForAdmin(@RequestBody Space space) {
+        Map resultMap = spaceServiceV3.qutaoSpaceForAdmin(space);
+
+        return resultMap;
+    }
+
+    /**
+     * 운영자 포털에서 공간명을 변경한다. (Space : Update)
+     *
+     * @param space
+     * @return Map
+     */
+    @PutMapping(Constants.V3_URL + "/space-name-admin")
+    public Map renameSpaceForAdmin(@RequestBody Space space) {
+        Map resultMap = spaceServiceV3.renameSpaceForAdmin(space);
         return resultMap;
     }
 
