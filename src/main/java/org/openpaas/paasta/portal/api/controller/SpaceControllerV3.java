@@ -165,6 +165,14 @@ public class SpaceControllerV3 extends Common {
 
     }
 
+    @GetMapping(Constants.V3_URL + "/spaces/{spaceId}/user-roles2")
+    public Map getSpaceUserRoles2(@PathVariable String spaceId, @RequestHeader(AUTHORIZATION_HEADER_KEY) String token) {
+        Map resultMap = new HashMap();
+        Map spaceMap = spaceServiceV3.getSpaceUserRoles2(spaceId, token);
+        resultMap.put("result", spaceMap);
+        return resultMap;
+    }
+
     @PutMapping(Constants.V3_URL + "/spaces/{spaceId}/user-roles")
     public boolean associateSpaceUserRoles(@PathVariable String spaceId, @RequestBody List<UserRole> Roles, @RequestHeader(AUTHORIZATION_HEADER_KEY) String token) {
         return spaceServiceV3.associateSpaceUserRoles(spaceId, Roles, token);
