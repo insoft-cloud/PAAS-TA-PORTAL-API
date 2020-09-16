@@ -4,6 +4,8 @@ package org.openpaas.paasta.portal.api.service;
 import org.cloudfoundry.client.lib.CloudFoundryException;
 import org.cloudfoundry.client.v2.users.GetUserRequest;
 import org.cloudfoundry.client.v2.users.GetUserResponse;
+import org.cloudfoundry.client.v2.users.SummaryUserRequest;
+import org.cloudfoundry.client.v2.users.SummaryUserResponse;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.tokens.GetTokenByClientCredentialsRequest;
@@ -354,5 +356,16 @@ public class UserServiceV3 extends Common {
         return updateUserResponse;
     }
 
+    /**
+     *
+     * 유저 상세정보전체출력
+     *
+     * @param userid
+     * @return
+     */
+    public SummaryUserResponse GetUserSummary(String userid){
+        ReactorCloudFoundryClient cloudFoundryClient = cloudFoundryClient();
+        return cloudFoundryClient.users().summary(SummaryUserRequest.builder().userId(userid).build()).block();
+    }
 
 }

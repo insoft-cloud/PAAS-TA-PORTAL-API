@@ -1,6 +1,7 @@
 package org.openpaas.paasta.portal.api.controller;
 
 import org.cloudfoundry.client.v2.users.GetUserResponse;
+import org.cloudfoundry.client.v2.users.SummaryUserResponse;
 import org.cloudfoundry.uaa.users.UpdateUserResponse;
 import org.cloudfoundry.uaa.users.User;
 import org.openpaas.paasta.portal.api.common.Common;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -196,5 +196,17 @@ public class UserControllerV3 extends Common {
     @PutMapping(Constants.V3_URL + "/user/{userid}/active")
     public UpdateUserResponse UpdateUserActive(@PathVariable String userid) throws Exception {
         return userServiceV3.UpdateUserActive(userid);
+    }
+
+    /**
+     *
+     * 유저 상세정보전체출력
+     *
+     * @param userid
+     * @return
+     */
+    @GetMapping(Constants.V3_URL+"/users/{userid}/summary")
+    public SummaryUserResponse GetUserSummary(@PathVariable String userid){
+        return userServiceV3.GetUserSummary(userid);
     }
 }
