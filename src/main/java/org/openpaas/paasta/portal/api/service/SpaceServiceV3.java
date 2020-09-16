@@ -2,6 +2,8 @@ package org.openpaas.paasta.portal.api.service;
 
 import org.cloudfoundry.client.lib.CloudFoundryException;
 import org.cloudfoundry.client.v2.applications.ApplicationStatisticsResponse;
+import org.cloudfoundry.client.v2.spacequotadefinitions.AssociateSpaceQuotaDefinitionRequest;
+import org.cloudfoundry.client.v2.spacequotadefinitions.RemoveSpaceQuotaDefinitionRequest;
 import org.cloudfoundry.client.v2.spaces.*;
 import org.cloudfoundry.client.v2.users.UserResource;
 import org.cloudfoundry.client.v3.Relationship;
@@ -250,6 +252,40 @@ public class SpaceServiceV3 extends Common {
 
     /**
      *
+     * 운영자 포털에서 공간명과 할당량을 변경한다. (Space : Update)
+     *
+     * @param space
+     * @return
+     */
+    public Map renameSpaceQuotaForAdmin(Space space) {
+        Map resultMap = new HashMap();
+        try {
+
+            if(space.getSpaceQuotaGuid().equals("N")){
+                if(space.getOrgGuid()!=null){
+                    cloudFoundryClient().spaces().update(UpdateSpaceRequest.builder().spaceId(space.getSpaceGuid()).name(space.getNewSpaceName()).build()).block();
+                    cloudFoundryClient().spaceQuotaDefinitions().removeSpace(RemoveSpaceQuotaDefinitionRequest.builder().spaceId(space.getSpaceGuid()).spaceQuotaDefinitionId(space.getOrgGuid()).build()).block();
+                }else if(space.getOrgGuid()==null){
+                    cloudFoundryClient().spaces().update(UpdateSpaceRequest.builder().spaceId(space.getSpaceGuid()).name(space.getNewSpaceName()).build()).block();
+                }
+            }else{
+                cloudFoundryClient().spaces().update(UpdateSpaceRequest.builder().spaceId(space.getSpaceGuid()).name(space.getNewSpaceName()).build()).block();
+                cloudFoundryClient().spaceQuotaDefinitions().associateSpace(AssociateSpaceQuotaDefinitionRequest.builder().spaceId(space.getSpaceGuid()).spaceQuotaDefinitionId(space.getSpaceQuotaGuid()).build()).block();
+            }
+
+            resultMap.put("msg", "You have successfully completed the task.");
+            resultMap.put("result", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultMap.put("result", false);
+            resultMap.put("msg", e);
+        }
+
+        return resultMap;
+    }
+
+    /**
+     *
      * 운영자 포털에서 공간명을 변경한다. (Space : Update)
      *
      * @param space
@@ -257,9 +293,35 @@ public class SpaceServiceV3 extends Common {
      */
     public Map renameSpaceForAdmin(Space space) {
         Map resultMap = new HashMap();
-
         try {
-            cloudFoundryClient().spaces().update(UpdateSpaceRequest.builder().spaceId(space.getGuid().toString()).name(space.getNewSpaceName()).build()).block();
+            cloudFoundryClient().spaces().update(UpdateSpaceRequest.builder().spaceId(space.getSpaceGuid()).name(space.getNewSpaceName()).build()).block();
+            resultMap.put("msg", "You have successfully completed the task.");
+            resultMap.put("result", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultMap.put("result", false);
+            resultMap.put("msg", e);
+        }
+
+        return resultMap;
+    }
+
+
+    /**
+     *
+     * 운영자 포털에서 할당량을 변경한다. (Space : Update)
+     *
+     * @param space
+     * @return
+     */
+    public Map qutaoSpaceForAdmin(Space space) {
+        Map resultMap = new HashMap();
+        try {
+            if(space.getSpaceQuotaGuid().equals("N") && space.getOrgGuid()!=null){
+                cloudFoundryClient().spaceQuotaDefinitions().removeSpace(RemoveSpaceQuotaDefinitionRequest.builder().spaceId(space.getSpaceGuid()).spaceQuotaDefinitionId(space.getOrgGuid()).build()).block();
+            }else{
+                 cloudFoundryClient().spaceQuotaDefinitions().associateSpace(AssociateSpaceQuotaDefinitionRequest.builder().spaceId(space.getSpaceGuid()).spaceQuotaDefinitionId(space.getSpaceQuotaGuid()).build()).block();
+            }
 
             resultMap.put("msg", "You have successfully completed the task.");
             resultMap.put("result", true);

@@ -12,6 +12,7 @@ import org.cloudfoundry.client.v3.organizations.AssignOrganizationDefaultIsolati
 import org.cloudfoundry.client.v3.organizations.CreateOrganizationResponse;
 import org.cloudfoundry.operations.useradmin.OrganizationUsers;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
+import org.json.JSONException;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.openpaas.paasta.portal.api.common.Constants;
 import org.openpaas.paasta.portal.api.model.Org;
@@ -341,8 +342,25 @@ public class OrgControllerV3 extends Common {
         Objects.requireNonNull(token, "token");
         ReactorCloudFoundryClient reactorCloudFoundryClient = cloudFoundryClient(connectionContext(), tokenProvider(token));
         return orgServiceV3.getOrgUserRoles(orgId, reactorCloudFoundryClient);
-
     }
+
+    /**
+     *
+     * 유저의 역할(Role)를 전부조회한다
+     *
+     * @param orgId
+     * @param spaceId
+     * @param param
+     * @return
+     * @throws JSONException
+     */
+    @PostMapping(Constants.V3_URL + "/orgs-user/{orgId}/user-roles/{spaceId}")
+    public Map<String, Collection<UserRole>> getOrgUserRolesForAdmin(@PathVariable String orgId,@PathVariable String spaceId,@RequestBody String param){
+        Objects.requireNonNull(orgId, "Org Id");
+        ReactorCloudFoundryClient reactorCloudFoundryClient = cloudFoundryClient();
+        return orgServiceV3.getOrgUserRolesForAdmin(orgId, reactorCloudFoundryClient,spaceId,param);
+    }
+
 
     /**
      * 조직 이름과 유저 이름으로 해당 조직에서 유저가 가진 역할(Role)을 조회한다.

@@ -15,6 +15,7 @@ import org.cloudfoundry.client.v2.spaces.*;
 import org.cloudfoundry.client.v2.users.UserResource;
 import org.cloudfoundry.operations.organizations.OrganizationDetail;
 import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
+import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.OrganizationUsers;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
@@ -548,7 +549,6 @@ public class OrgServiceV3 extends Common {
         return orgMap;
     }
 
-
     //// Org-Role
     private enum OrgRole {
         OrgManager, BillingManager, OrgAuditor, ORGMANAGER, BILLINGMANAGER, ORGAUDITOR,
@@ -556,6 +556,11 @@ public class OrgServiceV3 extends Common {
 
     protected List<UserResource> listAllOrgUsers(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
         final ListOrganizationUsersResponse response = reactorCloudFoundryClient.organizations().listUsers(ListOrganizationUsersRequest.builder().organizationId(orgId).orderDirection(OrderDirection.ASCENDING).build()).block();
+        return response.getResources();
+    }
+
+    protected List<UserSpaceRoleResource> listAllSpaceUsers(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceUserRolesResponse response = reactorCloudFoundryClient.spaces().listUserRoles(ListSpaceUserRolesRequest.builder().spaceId(orgId).orderDirection(OrderDirection.ASCENDING).build()).block();
         return response.getResources();
     }
 
@@ -577,6 +582,24 @@ public class OrgServiceV3 extends Common {
         return response.getResources();
     }
 
+    private List<UserResource> listSpaceManagerUsers(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceManagersResponse response = reactorCloudFoundryClient.spaces().listManagers(ListSpaceManagersRequest.builder().spaceId(orgId).orderDirection(OrderDirection.ASCENDING).build()).block();
+
+        return response.getResources();
+    }
+
+    private List<UserResource> listSpaceDeveloperUsers(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceDevelopersResponse response = reactorCloudFoundryClient.spaces().listDevelopers(ListSpaceDevelopersRequest.builder().spaceId(orgId).orderDirection(OrderDirection.ASCENDING).build()).block();
+
+        return response.getResources();
+    }
+
+    private List<UserResource> listSpaceAuditorUsers(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceAuditorsResponse response = reactorCloudFoundryClient.spaces().listAuditors(ListSpaceAuditorsRequest.builder().spaceId(orgId).orderDirection(OrderDirection.ASCENDING).build()).block();
+
+        return response.getResources();
+    }
+
     public Map<String, Collection<UserRole>> getOrgUserRoles(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
         Map<String, UserRole> userRoles = new HashMap<>();
         listAllOrgUsers(orgId, reactorCloudFoundryClient).stream().map(resource -> UserRole.builder().userId(resource.getMetadata().getId()).userEmail(resource.getEntity().getUsername()).modifiableRoles(true).build()).filter(ur -> null != ur).forEach(ur -> userRoles.put(ur.getUserId(), ur));
@@ -589,6 +612,53 @@ public class OrgServiceV3 extends Common {
         //roles.put( "all_users",  );
         final Map<String, Collection<UserRole>> result = new HashMap<>();
         result.put("user_roles", userRoles.values());
+        return result;
+    }
+
+
+    /**
+     *
+     * 유저의 역할(Role)를 전부조회한다
+     *
+     * @param orgId
+     * @param reactorCloudFoundryClient
+     * @param spaceId
+     * @param param
+     * @return
+     * @throws JSONException
+     */
+    public Map<String, Collection<UserRole>> getOrgUserRolesForAdmin(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient,String spaceId,String param){
+        final Map<String, Collection<UserRole>> result = new HashMap<>();
+        try {
+
+            org.json.JSONObject obj = new org.json.JSONObject(param);
+            String userId= obj.getString("userId");
+            String userName= obj.getString("userName");
+
+            Map<String, UserRole> userRoles = new HashMap<>();
+
+            listAllOrgUsers(orgId, reactorCloudFoundryClient).stream().map(resource -> UserRole.builder().userId(userId).userEmail(userName).modifiableRoles(true).build()).filter(ur -> null != ur).forEach(ur -> userRoles.put(ur.getUserId(), ur));
+
+            listAllSpaceUsers(spaceId, reactorCloudFoundryClient).stream().map(resource -> UserRole.builder().userId(userId).userEmail(userName).modifiableRoles(true).build()).filter(ur -> null != ur).forEach(ur -> userRoles.put(ur.getUserId(), ur));
+
+            listOrgManagerUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("OrgManager"));
+
+            listBillingManagerUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("BillingManager"));
+
+            listOrgAuditorUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("OrgAuditor"));
+
+            listSpaceManagerUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceManager"));
+
+            listSpaceDeveloperUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceDeveloper"));
+
+            listSpaceAuditorUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceAuditor"));
+
+            result.put("user_roles", userRoles.values());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         return result;
     }
 
