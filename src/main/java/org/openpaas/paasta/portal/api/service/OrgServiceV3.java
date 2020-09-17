@@ -333,9 +333,7 @@ public class OrgServiceV3 extends Common {
         Map resultMap = new HashMap();
 
         try {
-            cloudFoundryClient().organizations().update(UpdateOrganizationRequest.builder().organizationId(org.getGuid().toString()).name(org.getNewOrgName()).build()).block();
-            Quota quota = org.getQuota();
-
+            cloudFoundryClient().organizations().update(UpdateOrganizationRequest.builder().organizationId(org.getGuid().toString()).name(org.getNewOrgName()).quotaDefinitionId(org.getQuotaGuid()).build()).block();
             resultMap.put("msg", "You have successfully completed the task.");
             resultMap.put("result", true);
         } catch (Exception e) {
@@ -526,7 +524,6 @@ public class OrgServiceV3 extends Common {
         return resultMap;
     }
 
-
     public Map getOrgDetail(String guid, String token) {
         Map orgMap = new HashMap();
         ReactorCloudFoundryClient client = cloudFoundryClient(tokenProvider(token));
@@ -535,7 +532,10 @@ public class OrgServiceV3 extends Common {
             ListSpacesResponse listSpacesResponse = getOrgSpaces(guid, client);
             orgMap.put("space", listSpacesResponse);
 
-            Map<String, Collection<UserRole>> userRoles = getOrgUserRoles(guid, client);
+            SpaceResource spaces = listSpacesResponse.getResources().get(0);
+            String spaceId=spaces.getMetadata().getId();
+
+            Map<String, Collection<UserRole>> userRoles = getOrgUserRoles2(spaceId,guid, client);
             orgMap.put("userRoles", userRoles);
 
             GetOrganizationQuotaDefinitionResponse getOrganizationQuotaDefinitionResponse = getOrgQuota(guid, client);
@@ -548,6 +548,7 @@ public class OrgServiceV3 extends Common {
 
         return orgMap;
     }
+
 
     //// Org-Role
     private enum OrgRole {
@@ -586,6 +587,28 @@ public class OrgServiceV3 extends Common {
         listBillingManagerUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("BillingManager"));
 
         listOrgAuditorUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("OrgAuditor"));
+        //roles.put( "all_users",  );
+        final Map<String, Collection<UserRole>> result = new HashMap<>();
+        result.put("user_roles", userRoles.values());
+        return result;
+    }
+
+    public Map<String, Collection<UserRole>> getOrgUserRoles2(String spaceId,String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        Map<String, UserRole> userRoles = new HashMap<>();
+        listAllOrgUsers(orgId, reactorCloudFoundryClient).stream().map(resource -> UserRole.builder().userId(resource.getMetadata().getId()).userEmail(resource.getEntity().getUsername()).modifiableRoles(true).build()).filter(ur -> null != ur).forEach(ur -> userRoles.put(ur.getUserId(), ur));
+
+        listOrgManagerUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("OrgManager"));
+
+        listBillingManagerUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("BillingManager"));
+
+        listOrgAuditorUsers(orgId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("OrgAuditor"));
+
+        listSpaceManagerUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceManager"));
+
+        listSpaceDeveloperUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceDeveloper"));
+
+        listSpaceAuditorUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceAuditor"));
+
         //roles.put( "all_users",  );
         final Map<String, Collection<UserRole>> result = new HashMap<>();
         result.put("user_roles", userRoles.values());
