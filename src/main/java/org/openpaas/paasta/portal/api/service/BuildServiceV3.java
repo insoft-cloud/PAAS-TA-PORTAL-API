@@ -6,8 +6,8 @@ import org.cloudfoundry.client.v3.LifecycleType;
 import org.cloudfoundry.client.v3.Relationship;
 import org.cloudfoundry.client.v3.builds.*;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.mariadb.jdbc.internal.logging.Logger;
+import org.mariadb.jdbc.internal.logging.LoggerFactory;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.springframework.stereotype.Service;
 

@@ -3,12 +3,12 @@ package org.openpaas.paasta.portal.api.controller;
 import org.cloudfoundry.client.v3.builds.CreateBuildResponse;
 import org.cloudfoundry.client.v3.builds.GetBuildResponse;
 import org.cloudfoundry.client.v3.builds.ListBuildsResponse;
+import org.mariadb.jdbc.internal.logging.Logger;
+import org.mariadb.jdbc.internal.logging.LoggerFactory;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.openpaas.paasta.portal.api.common.Constants;
 import org.openpaas.paasta.portal.api.model.Builds;
 import org.openpaas.paasta.portal.api.service.BuildServiceV3;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
