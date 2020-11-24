@@ -1,167 +1,182 @@
-# Spring properties
-spring:
-  application:
-    name: PortalApi  # Service registers under this name
-  security:
-    username: admin
-    password: openpaasta
-  flyway:
-    enabled: false
+  Skip to content
+    Search or jump to…
 
-#Spring config setting (current version not used)
-#  boot:
-#    #Spring boot admin settings
-#    admin:
-#      routes:
-#        endpoints: env,metrics,trace,info,trace,heapdump,hystrix.stream,docs,turbine
-#        #Timeintervalin ms to update the status of App
-#      monitor:
-#        perio: 10000
-#        #LifeTime of App status in ms.
-#        status-lifetime: 10000
-#        #Connection Timeout in ms when App's status and info
-#        connect-timeout: 2000
-#        #Read Timeout in ms when App's status and info
-#        read-timeout: 5000
-#      metadata-keys-to-sanitize: .password$,.*secret$,.*key$,.$token$,.credentials.,.*vcap_services$
+    Pull requests
+    Issues
+    Marketplace
+    Explore
 
-#Infra Admin Settings (current version not used)
-#project:
-#  name: paasta-api
-#  artifactId: paasta-cf-api
-#  description: paasta-cf-api management service
-#info:
-#  app:
-#    encoding: Encoding - UTF-8
-#  java:
-#    source: Source - java ver
-#    target: Instance1 - Java ver
-#  spring:
-#    profiles: ${spring.profiles.active:default}
-#  build:
-#    name: ${project.name}
-#    artifact: ${project.artifactId}
-#    description: ${project.description}
+    @seyaz
+    PaaS-TA
+    /
+    PAAS-TA-PORTAL-API
+    7
+    🔖 Custom notification settings
+    Looking for a little more control? Now you can choose which types of activity you’d like to be notified about per repository.
 
-# HTTP Server
-server:
-  port: ${PORT:2222}   # HTTP (Tomcat) port
+    17
+    2
+    Code
+    Issues
+    Pull requests
+    Actions
+    Projects
+    Wiki
+    Security
+    Insights
+    PAAS-TA-PORTAL-API/src/main/resources/application.yml
+    @lena-kim
+    lena-kim add manifest, update config, modify get App status method
+    Latest commit 56022db 7 days ago
+    History
+    2 contributors
+    @seongwookmoon@lena-kim
+    135 lines (122 sloc)  3.85 KB
 
-tailsocket:
-  port: 5555
+  # Spring properties
+  spring:
+    application:
+      name: PortalApi  # Service registers under this name
+    security:
+      username: admin
+      password: openpaasta
+    flyway:
+      enabled: false
 
-management:     # If you set off security...
-  security:
-    enabled: false
+  # HTTP Server
+  server:
+    port: ${PORT:2222}   # HTTP (Tomcat) port
 
-#Hystrix Setting(current version not used)
-#hystrix:
-#  threadpool:
-#    default:
-#      # Maximum number of concurrent requests when using thread pools (Default: 10)
-#      coreSize: 100
-#      # Maximum LinkedBlockingQueue size - -1 for using SynchronousQueue (Default: -1)
-#      maxQueueSize: -1
-#      # Queue size rejection threshold (Default: 5)
-#      queueSizeRejectionThreshold: 5
-#  command:
-#    default:
-#      circuitBreaker:
-#        sleepWindowInMilliseconds: 60000
-#        requestVolumeThreshold: 3
-#      execution:
-#        isolation:
-#          #strategy: SEMAPHORE, no thread pool but timeout handling stops to work
-#          strategy: THREAD
-#          thread:
-#            timeoutInMilliseconds: 60000
+  tailsocket:
+    port: 5555
 
+  management:     # If you set off security...
+    security:
+      enabled: false
 
-# CloudFoundry API Url
-cloudfoundry:
-  cc:
+  # paasta info
+  cloudfoundry:
+    cc:
+      api:
+        url: https://api.<DOMAIN>
+        uaaUrl: https://uaa.<DOMAIN>
+        sslSkipValidation: true
+    # CloudFoundry Login information
+    user:
+      admin:
+        username: <CF_USER_ADMIN_USERNAME>                # (e.g. admin)
+        password: <CF_USER_ADMIN_PASSWORD>                # (e.g. admin)
+      uaaClient:
+        clientId: <UAA_CLIENT_ID>                         # (e.g. admin)
+        clientSecret: <UAA_CLIENT_SECRET>                 # (e.g. admin-secret)
+        adminClientId: <UAA_ADMIN_CLIENT_ID>              # (e.g. admin)
+        adminClientSecret: <UAA_ADMIN_CLIENT_SECRET>      # (e.g. admin-secret)
+        loginClientId: <UAA_LOGIN_CLIENT_ID>              # (e.g. admin)
+        loginClientSecret: <UAA_LOGIN_CLIENT_SECRET>      # (e.g. admin-secret)
+        skipSSLValidation: true
+    authorization: cf-Authorization
+
+  abacus:
+    url: http://<ABACUS_URL>
+
+  # 포탈 상세 모니터링
+  monitoring:
     api:
-      url: https://api.XXX.XXX.XXX.XXX.xip.io # YOUR API URL
-      uaaUrl: https://uaa.XXX.XXX.XXX.XXX.xip.io # YOUR UAA API URL
-      sslSkipValidation: true
-  # CloudFoundry Login information
-  user:
-    admin:
-      username: admin # YOUR CF ADMIN ACCOUT
-      password: 'PASSWORD' # YOUR CF ADMIN PASSWORD
-    uaaClient:
-      clientId: login
-      clientSecret: login-secret
-      adminClientId: admin
-      adminClientSecret: admin-secret
-      loginClientId: login
-      loginClientSecret: login-secret
-      skipSSLValidation: true
-  authorization: cf-Authorization
+      url: http://<MONITORING_API_URL>
+
+  multipart:
+    maxFileSize: 1000Mb
+    maxRequestSize: 1000Mb
+
+  paasta:
+    portal:
+      api:
+        authorization:
+          base64: Basic YWRtaW46b3BlbnBhYXN0YQ==
+        zuulUrl:
+          cfapi: http://<PORTAL_GATEWAY_IP>:<PORTAL_GATEWAY_PORT>/portalapi
+          commonapi: http://<PORTAL_GATEWAY_IP>:<PORTAL_GATEWAY_PORT>/commonapi
+          storageapi: http://<PORTAL_GATEWAY_IP>:<PORTAL_GATEWAY_PORT>/storageapi
+      storageapi:
+        type: swift
+
+  # Discovery Server Access
+  eureka:
+    client:
+      serviceUrl:
+        defaultZone: http://<PORTAL_REGISTRATION_IP>:<PORTAL_REGISTRATION_PORT>/eureka/
+        registry-fetch-interval-seconds: 5
+    instance:
+      hostname: ${spring.cloud.client.hostname}
+      lease-expiration-duration-in-seconds: 5
+      lease-renewal-interval-in-seconds: 10
+
+  #Spring config setting (current version not used)
+  #  boot:
+  #    #Spring boot admin settings
+  #    admin:
+  #      routes:
+  #        endpoints: env,metrics,trace,info,trace,heapdump,hystrix.stream,docs,turbine
+  #        #Timeintervalin ms to update the status of App
+  #      monitor:
+  #        perio: 10000
+  #        #LifeTime of App status in ms.
+  #        status-lifetime: 10000
+  #        #Connection Timeout in ms when App's status and info
+  #        connect-timeout: 2000
+  #        #Read Timeout in ms when App's status and info
+  #        read-timeout: 5000
+  #      metadata-keys-to-sanitize: .password$,.*secret$,.*key$,.$token$,.credentials.,.*vcap_services$
+
+  #Infra Admin Settings (current version not used)
+  #project:
+  #  name: paasta-api
+  #  artifactId: paasta-cf-api
+  #  description: paasta-cf-api management service
+  #info:
+  #  app:
+  #    encoding: Encoding - UTF-8
+  #  java:
+  #    source: Source - java ver
+  #    target: Instance1 - Java ver
+  #  spring:
+  #    profiles: ${spring.profiles.active:default}
+  #  build:
+  #    name: ${project.name}
+  #    artifact: ${project.artifactId}
+  #    description: ${project.description}
 
 
-abacus:
-  url: http://paasta-usage-reporting.XXX.XXX.XXX.XXX.xip.io/v1 # YOUR ABACUS API URL
-
-# 포탈 상세 모니터링
-monitoring:
-  api:
-    url: http://monitapi.XXX.XXX.XXX.XXX.xip.io # YOUR MONITORING API URL
-
-multipart:
-  maxFileSize: 1000Mb
-  maxRequestSize: 1000Mb
-
-
-
----
-spring:
-  profiles: local
-  Socket: 'The host information for the socket is set to Localhost'
-paasta:
-  portal:
-    api:
-      authorization:
-        base64: Basic YWRtaW46b3BlbnBhYXN0YQ==
-      zuulUrl:
-        cfapi: http://localhost:2225/portalapi # YOUR LOCAL TEST SETTING
-        commonapi: http://localhost:2225/commonapi # YOUR LOCAL TEST SETTING
-        storageapi: http://localhost:2225/storageapi # YOUR LOCAL TEST SETTING
-    storageapi:
-      type: swift
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://127.0.0.1:2221/eureka/ #YOUR LOCAL TEST SETTING
-      registry-fetch-interval-seconds: 5
-  instance:
-    hostname: ${spring.cloud.client.hostname}
-    lease-expiration-duration-in-seconds: 5
-    lease-renewal-interval-in-seconds: 10
-
----
-spring:
-  profiles: dev
-  Socket: 'The host information for the socket is set to ServerIP'
-paasta:
-  portal:
-    api:
-      authorization:
-        base64: Basic YWRtaW46b3BlbnBhYXN0YQ==
-      zuulUrl:
-        cfapi: http://XXX.XXX.XXX.XXX:2225/portalapi #YOUR GATEWAY SERVICE DEV SETTING(ACTIVE INFORMATION)
-        commonapi: http://XXX.XXX.XXX.XXX:2225/commonapi #YOUR GATEWAY SERVICE DEV SETTING(ACTIVE INFORMATION)
-        storageapi: http://XXX.XXX.XXX.XXX:2225/storageapi #YOUR GATEWAY SERVICE DEV SETTING(ACTIVE INFORMATION)
-    storageapi:
-      type: swift
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://XXX.XXX.XXX.XXX:2221/eureka/ #YOUR EUREKA SERVICE DEV SETTING(ACTIVE INFORMATION)
-      registry-fetch-interval-seconds: 5
-  instance:
-    hostname: ${spring.cloud.client.hostname}
-    lease-expiration-duration-in-seconds: 5
-    lease-renewal-interval-in-seconds: 10
+  #Hystrix Setting(current version not used)
+  #hystrix:
+  #  threadpool:
+  #    default:
+  #      # Maximum number of concurrent requests when using thread pools (Default: 10)
+  #      coreSize: 100
+  #      # Maximum LinkedBlockingQueue size - -1 for using SynchronousQueue (Default: -1)
+  #      maxQueueSize: -1
+  #      # Queue size rejection threshold (Default: 5)
+  #      queueSizeRejectionThreshold: 5
+  #  command:
+  #    default:
+  #      circuitBreaker:
+  #        sleepWindowInMilliseconds: 60000
+  #        requestVolumeThreshold: 3
+  #      execution:
+  #        isolation:
+  #          #strategy: SEMAPHORE, no thread pool but timeout handling stops to work
+  #          strategy: THREAD
+  #          thread:
+  #            timeoutInMilliseconds: 60000
+    © 2020 GitHub, Inc.
+    Terms
+    Privacy
+    Security
+    Status
+    Help
+    Contact GitHub
+    Pricing
+    API
+    Training
+    Blog
+    About
