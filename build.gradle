@@ -1,33 +1,38 @@
 buildscript {
     ext {
-        springBootVersion = '1.5.10.RELEASE'
+        springBootVersion = '2.3.3.RELEASE'
     }
     repositories {
         mavenCentral()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE")
     }
 }
 
-ext {
-    springCloudVersion = 'Edgware.RELEASE'
-}
-
 apply plugin: 'java'
-apply plugin: 'spring-boot'
-apply plugin: "io.spring.dependency-management"
-
-
-jar {
-    baseName = 'paas-ta-portal-api'
-}
+apply plugin: 'idea'
+apply plugin: 'jacoco'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 
 sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+ext {
+    springCloudVersion = 'Hoxton.SR8'
+    cfClientVersion = '4.0.1.RELEASE'
+    flywayVersion = '7.5.2'
+    powerMockVersion = '2.0.9'
+    jacocoVersion = '0.8.1'
+}
+
+jar {
+    archivesBaseName = 'paas-ta-portal-api'
 }
 
 dependencyManagement {
@@ -35,31 +40,22 @@ dependencyManagement {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
+
 dependencies {
     //Server Security
     compile ('org.springframework.boot:spring-boot-starter-security')
 
-    //Admin Server Setting
-//    compile ('de.codecentric:spring-boot-admin-starter-client:1.5.7')
-
-    //Config Server Setting
-//    compile('org.springframework.cloud:spring-cloud-starter-config')
+    compile ('org.springframework.boot:spring-boot-starter-validation')
 
     //Eureka
-    compile ('org.springframework.cloud:spring-cloud-starter-eureka')
+    compile ('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client')
 
     //cloud foundry client
-    compile ('org.cloudfoundry:cloudfoundry-client-reactor:4.0.1.RELEASE')
-    compile ('org.cloudfoundry:cloudfoundry-operations:4.0.1.RELEASE')
-    compile ('org.cloudfoundry:cloudfoundry-client:4.0.1.RELEASE')
+    compile ("org.cloudfoundry:cloudfoundry-client-reactor:${cfClientVersion}")
+    compile ("org.cloudfoundry:cloudfoundry-operations:${cfClientVersion}")
+    compile ("org.cloudfoundry:cloudfoundry-client:${cfClientVersion}")
     compile('org.cloudfoundry:cloudfoundry-client-lib:1.1.3')
-    compile ('org.cloudfoundry:cloudfoundry-util:4.0.1.RELEASE')
-    compile ('io.projectreactor:reactor-core:3.3.0.RELEASE')
-
-    compile ('io.projectreactor.ipc:reactor-netty:0.7.15.RELEASE')
-
-    // https://mvnrepository.com/artifact/com.corundumstudio.socketio/netty-socketio
-//    compile ('com.corundumstudio.socketio:netty-socketio:1.7.14')
+    compile ("org.cloudfoundry:cloudfoundry-util:${cfClientVersion}")
 
     compile ('com.googlecode.json-simple:json-simple:1.1.1')
 
@@ -69,36 +65,28 @@ dependencies {
         exclude group: 'org.slf4j'
     }
 
+    compile ("org.flywaydb:flyway-core:${flywayVersion}")
 
-    //hystrix
-//    compile('org.springframework.cloud:spring-cloud-starter-hystrix:1.4.4.RELEASE')
-//    compile('org.springframework.boot:spring-boot-starter-actuator')
-
-    compile ('org.flywaydb:flyway-core:4.0.3')
-
-
-    testCompile('org.cloudfoundry:cloudfoundry-client-reactor:4.0.1.RELEASE')
-    testCompile('org.cloudfoundry:cloudfoundry-operations:4.0.1.RELEASE')
+    testCompile("org.cloudfoundry:cloudfoundry-client-reactor:${cfClientVersion}")
+    testCompile("org.cloudfoundry:cloudfoundry-operations:${cfClientVersion}")
     testCompile('org.cloudfoundry:cloudfoundry-client-lib:1.1.3')
-    testCompile('io.projectreactor:reactor-core:4.0.1.RELEASE')
-    testCompile('io.projectreactor.ipc:reactor-netty:0.7.15.RELEASE')
 
+    testCompile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+    testCompile group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
 
-    testCompile('org.springframework.boot:spring-boot-starter-test')
-    testCompile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.2.12'
-    testCompile group: 'org.jsoup', name: 'jsoup', version: '1.9.2'
+    testCompile "org.powermock:powermock-module-junit4:${powerMockVersion}"
+    testCompile "org.powermock:powermock-api-mockito:1.7.4"
+    testCompile "com.squareup.okhttp3:mockwebserver:4.9.0"
 
-    testCompile "org.powermock:powermock-module-junit4:1.6.6"
-    testCompile "org.powermock:powermock-api-mockito:1.6.6"
-    testCompile "com.squareup.okhttp3:mockwebserver:3.11.0"
-
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-
-apply plugin: 'jacoco'
+test {
+    useJUnitPlatform()
+}
 
 jacoco {
-    toolVersion = "0.7.9+"
+    toolVersion = "${jacocoVersion}"
 }
 
 test {
@@ -107,26 +95,3 @@ test {
         destinationFile = file("$buildDir/jacoco/jacoco-overall.exec")
     }
 }
-
-/* 
-// windows only
-task pathingJar(type: Jar) {
-    dependsOn configurations.runtime
-    appendix = 'pathing'
-
-    doFirst {
-       manifest {
-           attributes "Class-Path": configurations.runtime.files.collect {it.toURL().toString().replaceFirst("file:/", '/')}.join(" ")
-       }
-   }
-}
-
-bootRun {
-   dependsOn pathingJar
-   jvmArgs = [ '-server', '-Xmx256m', '-Dspring.profiles.active=local', '-Deureka.client.enabled=false', '-Dspring.cloud.config.enabled=false', '-Dspring.config.location=C:/paasta-workspace/official/PAAS-TA-PORTAL-CONFIG-DATA/PortalApi.yml', '-Dio.netty.leakDetectionLevel=PARANOID' ]
-   doFirst {
-       // classpath = files("$buildDir/classes/main", "$buildDir/resources/main", pathingJar.archivePath)
-       classpath = files(sourceSets.main.output.files, pathingJar.archivePath)
-   }
-} 
-*/
