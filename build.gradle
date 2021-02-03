@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.3.3.RELEASE'
+        springBootVersion = '2.4.2'
     }
     repositories {
         mavenCentral()
@@ -24,8 +24,8 @@ repositories {
 }
 
 ext {
-    springCloudVersion = 'Hoxton.SR8'
-    cfClientVersion = '4.0.1.RELEASE'
+    springCloudVersion = '2020.0.0'
+    cfClientVersion = '5.1.0.RELEASE'
     flywayVersion = '7.5.2'
     powerMockVersion = '2.0.9'
     jacocoVersion = '0.8.1'

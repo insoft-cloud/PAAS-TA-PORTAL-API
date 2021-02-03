@@ -1,11 +1,12 @@
 package org.openpaas.paasta.portal.api.model;
 
-import org.cloudfoundry.Nullable;
-import org.cloudfoundry.client.v3.serviceInstances.ServiceInstance;
+import org.cloudfoundry.client.v3.serviceinstances.ServiceInstance;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpaceV3 {
