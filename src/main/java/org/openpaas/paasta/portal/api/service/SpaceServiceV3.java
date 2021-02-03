@@ -1,6 +1,7 @@
 package org.openpaas.paasta.portal.api.service;
 
 import org.cloudfoundry.client.lib.CloudFoundryException;
+import org.cloudfoundry.client.v2.OrderDirection;
 import org.cloudfoundry.client.v2.applications.ApplicationStatisticsResponse;
 import org.cloudfoundry.client.v2.spacequotadefinitions.AssociateSpaceQuotaDefinitionRequest;
 import org.cloudfoundry.client.v2.spacequotadefinitions.RemoveSpaceQuotaDefinitionRequest;
@@ -11,7 +12,6 @@ import org.cloudfoundry.client.v3.ToOneRelationship;
 import org.cloudfoundry.client.v3.spaces.AssignSpaceIsolationSegmentRequest;
 import org.cloudfoundry.client.v3.spaces.AssignSpaceIsolationSegmentResponse;
 import org.cloudfoundry.client.v3.spaces.SpaceRelationships;
-import org.cloudfoundry.operations.organizations.OrganizationInfoRequest;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.mariadb.jdbc.internal.logging.Logger;
@@ -511,6 +511,62 @@ public class SpaceServiceV3 extends Common {
 
     public ListSpaceUserRolesResponse getSpaceUserRoles(String spaceId, String token) {
         return cloudFoundryClient(tokenProvider(token)).spaces().listUserRoles(ListSpaceUserRolesRequest.builder().spaceId(spaceId).build()).block();
+    }
+
+    public Map getSpaceUserRoles2(String spaceId, String token) {
+        Map spaceMap = new HashMap();
+        ReactorCloudFoundryClient client = cloudFoundryClient(tokenProvider(token));
+        try {
+
+            Map<String, Collection<UserRole>> userRoles = getSPaceUserRoles(spaceId, client);
+            spaceMap.put("userRoles", userRoles);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return spaceMap;
+    }
+
+    public Map<String, Collection<UserRole>> getSPaceUserRoles(String spaceId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        Map<String, UserRole> userRoles = new HashMap<>();
+
+        listAllSpaceUsers(spaceId, reactorCloudFoundryClient).stream().map(resource -> UserRole.builder().userId(resource.getMetadata().getId()).userEmail(resource.getEntity().getUsername()).modifiableRoles(true).build()).filter(ur -> null != ur).forEach(ur -> userRoles.put(ur.getUserId(), ur));
+
+        listSpaceManagerUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceManager"));
+
+        listSpaceDeveloperUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceDeveloper"));
+
+        listSpaceAuditorUsers(spaceId, reactorCloudFoundryClient).stream().map(ur -> userRoles.get(ur.getMetadata().getId())).filter(ur -> null != ur).forEach(ur -> ur.addRole("SpaceAuditor"));
+
+        //roles.put( "all_users",  );
+        final Map<String, Collection<UserRole>> result = new HashMap<>();
+        result.put("user_roles", userRoles.values());
+        return result;
+    }
+
+    protected List<UserSpaceRoleResource> listAllSpaceUsers(String orgId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceUserRolesResponse response = reactorCloudFoundryClient.spaces().listUserRoles(ListSpaceUserRolesRequest.builder().spaceId(orgId).orderDirection(OrderDirection.ASCENDING).build()).block();
+        return response.getResources();
+    }
+
+
+    private List<UserResource> listSpaceManagerUsers(String spaceId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceManagersResponse response = reactorCloudFoundryClient.spaces().listManagers(ListSpaceManagersRequest.builder().spaceId(spaceId).orderDirection(OrderDirection.ASCENDING).build()).block();
+
+        return response.getResources();
+    }
+
+    private List<UserResource> listSpaceDeveloperUsers(String spaceId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceDevelopersResponse response = reactorCloudFoundryClient.spaces().listDevelopers(ListSpaceDevelopersRequest.builder().spaceId(spaceId).orderDirection(OrderDirection.ASCENDING).build()).block();
+
+        return response.getResources();
+    }
+
+    private List<UserResource> listSpaceAuditorUsers(String spaceId, ReactorCloudFoundryClient reactorCloudFoundryClient) {
+        final ListSpaceAuditorsResponse response = reactorCloudFoundryClient.spaces().listAuditors(ListSpaceAuditorsRequest.builder().spaceId(spaceId).orderDirection(OrderDirection.ASCENDING).build()).block();
+
+        return response.getResources();
     }
 
     private AssociateSpaceManagerResponse associateSpaceManager(String spaceId, String userId) {

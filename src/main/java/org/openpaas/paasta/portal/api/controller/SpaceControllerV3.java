@@ -7,7 +7,6 @@ import org.cloudfoundry.client.v2.spaces.ListSpaceUserRolesResponse;
 import org.cloudfoundry.client.v3.spaces.AssignSpaceIsolationSegmentResponse;
 import org.openpaas.paasta.portal.api.common.Common;
 import org.openpaas.paasta.portal.api.common.Constants;
-import org.openpaas.paasta.portal.api.model.Org;
 import org.openpaas.paasta.portal.api.model.Space;
 import org.openpaas.paasta.portal.api.model.UserRole;
 import org.openpaas.paasta.portal.api.service.AppServiceV3;
@@ -163,6 +162,14 @@ public class SpaceControllerV3 extends Common {
     public ListSpaceUserRolesResponse getSpaceUserRoles(@PathVariable String spaceId, @RequestHeader(AUTHORIZATION_HEADER_KEY) String token) {
         return spaceServiceV3.getSpaceUserRoles(spaceId, token);
 
+    }
+
+    @GetMapping(Constants.V3_URL + "/spaces/{spaceId}/user-roles2")
+    public Map getSpaceUserRoles2(@PathVariable String spaceId, @RequestHeader(AUTHORIZATION_HEADER_KEY) String token) {
+        Map resultMap = new HashMap();
+        Map spaceMap = spaceServiceV3.getSpaceUserRoles2(spaceId, token);
+        resultMap.put("result", spaceMap);
+        return resultMap;
     }
 
     @PutMapping(Constants.V3_URL + "/spaces/{spaceId}/user-roles")
