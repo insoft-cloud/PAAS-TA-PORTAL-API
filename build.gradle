@@ -60,7 +60,7 @@ dependencies {
     compile ('com.googlecode.json-simple:json-simple:1.1.1')
 
     //cloud foundry uaa
-    compile files('libs/uaa-java-client-1.0.2-SNAPSHOT.jar')
+    compile files('libs/uaa-java-client-1.0.3-SNAPSHOT.jar')
     compile ('org.cloudfoundry.identity:cloudfoundry-identity-scim:2.7.4'){
         exclude group: 'org.slf4j'
     }
